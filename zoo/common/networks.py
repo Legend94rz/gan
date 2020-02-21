@@ -1,4 +1,5 @@
 from torch import nn
+import torch as T
 
 
 class Resnet9block(nn.Module):
@@ -61,13 +62,33 @@ class DCDiscriminator(nn.Module):
         return self.model(x)
 
 
-class GANLoss(nn.Module):
-    def forward(self, y_pred, y_true):
-        pass
+class DisLoss(nn.Module):
+    def __init__(self, gen, dis):
+        super(DisLoss, self).__init__()
+        self.loss = nn.BCEWithLogitsLoss()
+        self.dis = dis
+        self.gen = gen
+
+    def forward(self, noise, real):
+        real_pred = self.dis(real)
+        real_label = T.tensor(1.0).expand_as(real_pred)
+        loss_real = self.loss(real_pred, real_label)
+
+        fake_data = self.gen(noise)
+        fake_pred = self.dis(fake_data.detach())      # fix generator by detach. todo: 不用detach行不行？optD不更新G吧？
+        fake_label = T.tensor(1.0).expand_as(fake_pred)
+        loss_fake = self.loss(fake_pred, fake_label)
+        return (loss_real+loss_fake)*0.5
 
 
+class GenLoss(nn.Module):
+    def __init__(self):
+        super(GenLoss, self).__init__()
+        self.loss = nn.BCEWithLogitsLoss()
 
-
+    def forward(self, pred, target=1.0):
+        target = T.tensor(target).expand_as(pred)
+        return self.loss(pred, target)
 
 
 
