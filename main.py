@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
     opt = BaseOptions().parse()
     m = DCGan(opt)
-    loader = DataLoader(hp.CelebAFaces(), num_workers=0)
+    loader = DataLoader(hp.CelebAFaces(), num_workers=opt.ncpu)
     sam = T.randn(64, DCGan.nz, 1, 1, device=opt.dev)
     img_list = []
     plt.ioff()
@@ -19,7 +19,7 @@ if __name__ == "__main__":
         for i, data in enumerate(loader):
             m.update(data)
             # todo: forward, show sample, update return results
-            if i%100==0:
+            if i % 100 == 0:
                 print('Epoch[{e}/{opt.epochs}]  batch[{i}]  LossG[{}]  LossD[{}]')
             if i % 500 == 0:
                 gen_img = vutil.make_grid(m(sam).cpu(), normalize=True).numpy().transpose([1, 2, 0])

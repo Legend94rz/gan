@@ -29,7 +29,6 @@ class DCGan:
         # 5. optimizer.step()
 
         # sample noise
-        # todo: 第一维应该与data相同，而不是batch size
         noise = T.randn(len(data), DCGan.nz, 1, 1, device=self.opt.dev)
 
         # update D:
@@ -57,3 +56,4 @@ class DCGan:
         loss_G = self.loss(pred, real_label)
         loss_G.backward()
         self.optimizer_G.step()
+
