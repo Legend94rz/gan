@@ -36,7 +36,7 @@ class DCGenerator(nn.Module):
                                    nn.Tanh())  # output: C x 64 x 64
 
     def forward(self, x):
-        return self.main(x)
+        return self.model(x)
 
 
 class DCDiscriminator(nn.Module):
@@ -50,10 +50,11 @@ class DCDiscriminator(nn.Module):
             nn.Conv2d(64, 128, kernel_size=4, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(128), nn.LeakyReLU(0.2),
             nn.Conv2d(128, 256, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(128), nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(256), nn.LeakyReLU(0.2),
             nn.Conv2d(256, 512, kernel_size=4, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(128), nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(512), nn.LeakyReLU(0.2),
             nn.Conv2d(512, 1, kernel_size=4, stride=1, padding=0, bias=False),
+            nn.Flatten(),
             nn.Sigmoid())
 
     def forward(self, x):

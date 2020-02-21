@@ -19,6 +19,7 @@ class DCGan:
 
     def __call__(self, x):
         self.fake_data = self.G(x)
+        return self.fake_data
 
     def update(self, data):
         # typical update routine:
@@ -56,4 +57,5 @@ class DCGan:
         loss_G = self.loss(pred, real_label)
         loss_G.backward()
         self.optimizer_G.step()
+        return (loss_fake+loss_real)/2.0, loss_G
 

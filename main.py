@@ -10,19 +10,19 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
     opt = BaseOptions().parse()
     m = DCGan(opt)
-    loader = DataLoader(hp.CelebAFaces(), num_workers=opt.ncpu)
+    loader = DataLoader(hp.CelebAFaces('./dataset/img_align_celeba.zip'), num_workers=opt.ncpu)
     sam = T.randn(64, DCGan.nz, 1, 1, device=opt.dev)
     img_list = []
     plt.ioff()
     plt.axis('off')
     for e in range(opt.epochs):
         for i, data in enumerate(loader):
-            m.update(data)
+            loss_d, loss_g = m.update(data)
             # todo: forward, show sample, update return results
             if i % 100 == 0:
-                print('Epoch[{e}/{opt.epochs}]  batch[{i}]  LossG[{}]  LossD[{}]')
+                print(f'Epoch[{e}/{opt.epochs}]  batch[{i}]  LossG[{loss_g}]  LossD[{loss_d}]')
             if i % 500 == 0:
-                gen_img = vutil.make_grid(m(sam).cpu(), normalize=True).numpy().transpose([1, 2, 0])
+                gen_img = vutil.make_grid(m(sam).detach().cpu(), normalize=True).numpy().transpose([1, 2, 0])
                 img_list.append(gen_img)
                 plt.imshow(gen_img)
     plt.ion()
