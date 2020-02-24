@@ -11,12 +11,12 @@ class DCGan:
         # todo: move to base model
         self.opt = opt
 
-        self.G = DCGenerator().to(self.opt.dev)
-        self.D = DCDiscriminator().to(self.opt.dev)
+        self.G = DCGenerator().to(opt.dev)
+        self.D = DCDiscriminator().to(opt.dev)
         self.optimizer_G = T.optim.Adam(self.G.parameters())
         self.optimizer_D = T.optim.Adam(self.D.parameters())
-        self.lossD_fn = DisLoss(self.G, self.D)
-        self.lossG_fn = GenLoss()
+        self.lossD_fn = DisLoss(self.D).to(opt.dev)
+        self.lossG_fn = GenLoss().to(opt.dev)
 
     def __call__(self, x):
         self.fake_data = self.G(x)
@@ -38,7 +38,7 @@ class DCGan:
         # tricks: split real and fake in 2 batches, rather than mix them into 1 batch.
         self.optimizer_D.zero_grad()  # Clears the gradients of all optimized Tensors.
         self(noise)
-        loss_d = self.lossD_fn(noise, real_data)
+        loss_d = self.lossD_fn(self.fake_data, real_data)
         loss_d.backward()
         self.optimizer_D.step()
 

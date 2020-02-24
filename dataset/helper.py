@@ -2,14 +2,16 @@ import zipfile as zip
 from torch.utils.data import IterableDataset
 import torch as T
 from PIL import Image
-import cv2
-import numpy as np
+from torchvision import transforms as trans
 
 
 class CelebAFaces(IterableDataset):
-    def __init__(self, filepath, img_size=(64, 64)):
+    def __init__(self, filepath, transform=None):
         self.filepath = filepath
-        self.img_size = img_size
+        if transform is not None:
+            self.transform = transform
+        else:
+            self.transform = trans.ToTensor()
 
     def __iter__(self):
         worker_info = T.utils.data.get_worker_info()
@@ -20,6 +22,4 @@ class CelebAFaces(IterableDataset):
             for name in lst[wid::num_proc]:
                 with zf.open(name) as f:
                     jpg = Image.open(f).convert('RGB')
-                    cvjpg = cv2.cvtColor(np.array(jpg), cv2.COLOR_RGB2BGR)
-                    cvjpg = cv2.resize(cvjpg, self.img_size).transpose([2, 0, 1]).astype('float32')
-                    yield cvjpg
+                    yield self.transform(jpg)
