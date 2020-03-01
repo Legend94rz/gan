@@ -25,25 +25,24 @@ class CelebAFaces(IterableDataset):
                 yield self.transform(jpg)
 
 
-class Summer2Winter(Dataset):
+class Summer2Winter(IterableDataset):
     def __init__(self, filepath, split='train', transform=None):
         self.filepath = filepath
         self.split = split
         self.transform = transform
         if self.transform is None:
             self.transform = trans.ToTensor()
-        self.zf = zip.ZipFile(self.filepath)
-        lst = self.zf.namelist()
-        self.lstA = [x for x in lst if re.fullmatch(f'summer2winter_yosemite/{split}A/.+', x) is not None]
-        self.lstB = [x for x in lst if re.fullmatch(f'summer2winter_yosemite/{split}B/.+', x) is not None]
 
-    def __getitem__(self, i):
+    def __iter__(self):
         worker_info = T.utils.data.get_worker_info()
-        with self.zf.open(self.lstA[i % len(self.lstA)]) as fa, self.zf.open(self.lstB[i % len(self.lstB)]) as fb:
-            print("[%d/%d]: %s \t %s" % (worker_info.id, worker_info.num_workers, self.lstA[i % len(self.lstA)], self.lstB[i % len(self.lstB)]))
-            jpga = Image.open(fa).convert('RGB')
-            jpgb = Image.open(fb).convert('RGB')
-        return jpga, jpgb
-
-    def __len__(self):
-        return max(len(self.lstA), len(self.lstB))
+        num_proc = 1 if worker_info is None else worker_info.num_workers
+        wid = 0 if worker_info is None else worker_info.id
+        with zip.ZipFile(self.filepath) as zf:
+            lst = zf.namelist()
+            lstA = [x for x in lst if re.fullmatch(f'summer2winter_yosemite/{self.split}A/.+', x) is not None]
+            lstB = [x for x in lst if re.fullmatch(f'summer2winter_yosemite/{self.split}B/.+', x) is not None]
+            for i in range(wid, max(len(lstA), len(lstB)), num_proc):
+                with zf.open(lstA[i % len(lstA)]) as fa, zf.open(lstB[i % len(lstB)]) as fb:
+                    jpga = Image.open(fa).convert('RGB')
+                    jpgb = Image.open(fb).convert('RGB')
+                yield self.transform(jpga), self.transform(jpgb)
