@@ -1,6 +1,5 @@
-from zoo.common import BaseOptions
-from zoo.models import CycleGAN, DCGan
-from dataset import helper as hp
+from zoo.common import BaseOptions, dataset_helper as hp
+from zoo.models import DCGan
 import torch as T
 from torch.utils.data import DataLoader
 import torchvision.utils as vutil
@@ -11,7 +10,6 @@ from torchvision import transforms as trans
 
 if __name__ == "__main__":
     opt = BaseOptions().parse()
-    m = DCGan(opt)
     loader = DataLoader(hp.CelebAFaces('./dataset/img_align_celeba.zip',
                                        transform=trans.Compose([trans.Resize((64, 64)),
                                                                 trans.ToTensor(),
@@ -20,10 +18,10 @@ if __name__ == "__main__":
     sam = T.randn(64, DCGan.nz, 1, 1, device=opt.dev)
     img_list = []
     plt.ioff()
+    m = DCGan(opt)
     for e in range(opt.epochs):
         for i, data in enumerate(loader):
             loss_d, loss_g = m.update(data)
-            # todo: forward, show sample, update return results
             if i % 100 == 0:
                 print(f'Epoch[{e}/{opt.epochs}]  batch[{i}]  LossG[{loss_g}]  LossD[{loss_d}]')
             if i % 500 == 0:
@@ -35,4 +33,5 @@ if __name__ == "__main__":
     plt.axis('off')
     fig = plt.figure(figsize=(8, 8))
     gif = anim.ArtistAnimation(fig, img_list, interval=50, repeat_delay=1000, blit=True)
+    gif.save("result.mp4")
     plt.show()
