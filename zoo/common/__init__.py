@@ -1,2 +1,2 @@
-from .networks import NLayer, Resnet9block, DCDiscriminator, DCGenerator, DisLoss, GenLoss
-from .options import BaseOptions
+from .networks import NLayerDiscriminator, ResnetGenerator, DCDiscriminator, DCGenerator, DisLoss, GenLoss
+from .options import BaseOption

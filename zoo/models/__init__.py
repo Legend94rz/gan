@@ -1,2 +1,2 @@
-from .cyclegan import CycleGAN
+from .cyclegan import CycleGAN, CycleGANOption
 from .dcgan import DCGan
