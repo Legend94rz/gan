@@ -7,6 +7,9 @@ import re
 
 
 class CelebAFaces(IterableDataset):
+    """
+    ref page: https://drive.google.com/drive/folders/0B7EVK8r0v71pWEZsZE9oNnFzTm8
+    """
     def __init__(self, filepath, transform=None):
         self.filepath = filepath
         self.transform = transform
@@ -26,6 +29,10 @@ class CelebAFaces(IterableDataset):
 
 
 class Summer2Winter(IterableDataset):
+    """
+    ref page: https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/
+    summer2winter_yosemite.zip
+    """
     def __init__(self, filepath, split='train', transform=None):
         self.filepath = filepath
         self.split = split

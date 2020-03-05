@@ -17,10 +17,10 @@ class CycleGANOption(BaseOption):
 class CycleGAN(BaseModel):
     def __init__(self, opt: BaseOption):
         super().__init__(opt)
-        self.G2X = ResnetGenerator(opt.domy_nc, opt.domx_nc, n_blocks=6).to(opt.dev)
-        self.G2Y = ResnetGenerator(opt.domx_nc, opt.domy_nc, n_blocks=6).to(opt.dev)
-        self.D4X = NLayerDiscriminator(opt.domx_nc).to(opt.dev)
-        self.D4Y = NLayerDiscriminator(opt.domy_nc).to(opt.dev)
+        self.G2X = nn.DataParallel(ResnetGenerator(opt.domy_nc, opt.domx_nc, n_blocks=6).to(opt.dev), device_ids=opt.gpu_ids)
+        self.G2Y = nn.DataParallel(ResnetGenerator(opt.domx_nc, opt.domy_nc, n_blocks=6).to(opt.dev), device_ids=opt.gpu_ids)
+        self.D4X = nn.DataParallel(NLayerDiscriminator(opt.domx_nc).to(opt.dev), device_ids=opt.gpu_ids)
+        self.D4Y = nn.DataParallel(NLayerDiscriminator(opt.domy_nc).to(opt.dev), device_ids=opt.gpu_ids)
 
         self.optimizer_G = T.optim.Adam(it.chain(self.G2Y.parameters(), self.G2X.parameters()))
         self.optimizer_D = T.optim.Adam(it.chain(self.D4X.parameters(), self.D4Y.parameters()))
