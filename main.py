@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from torchvision import transforms as trans
 import logging
 import sys
+import os
+from pathlib import Path
 
 
 def init_logger():
@@ -21,9 +23,11 @@ def init_logger():
 
 
 if __name__ == "__main__":
-    # todo: multi gpu
     logger = init_logger()
     opt = CycleGANOption()
+    os.makedirs(opt.save_path, exist_ok=True)
+    save_path = Path(opt.save_path)
+
     transform = trans.Compose([trans.Resize(286), trans.CenterCrop(256), trans.ToTensor(),
                                trans.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     loader = DataLoader(hp.Summer2Winter('./dataset/summer2winter_yosemite.zip', split='train', transform=transform),
@@ -40,7 +44,7 @@ if __name__ == "__main__":
                 sam_train = data
             loss_d, loss_g = m.update(data)
             logger.info(f'Epoch[{e}/{opt.epochs}]  batch[{i}]  LossG[{loss_g}]  LossD[{loss_d}]')
-            if i % 500 == 0:
+            if i % 100 == 0:
                 fake_x, fake_y = m(sam_train[0][:64], sam_train[1][:64])
                 x2y_in_train = vutil.make_grid(fake_y.detach().cpu(), normalize=True)
                 y2x_in_train = vutil.make_grid(fake_x.detach().cpu(), normalize=True)
@@ -49,11 +53,12 @@ if __name__ == "__main__":
                 y2x_in_test = vutil.make_grid(fake_x.detach().cpu(), normalize=True)
                 img = vutil.make_grid([x2y_in_train, y2x_in_train, x2y_in_test, y2x_in_test], nrow=2, padding=8) \
                     .numpy().transpose([1, 2, 0])
+                plt.imsave(save_path/f"fig{len(img_list)}.jpg")
                 plt.axis('off')
                 img_list.append([plt.imshow(img)])
                 plt.show()
     plt.ion()
     fig = plt.figure(figsize=(16, 16))
     gif = anim.ArtistAnimation(fig, img_list, interval=50, repeat_delay=1000, blit=True)
-    gif.save("result.mp4")
+    gif.save(save_path/"result.mp4")
     plt.show()
