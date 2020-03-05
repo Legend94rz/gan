@@ -15,9 +15,12 @@ class BaseOption(ABC):
         self._parser.add_argument('--save_path', type=str, default='./outputs', help='folder for results.')
         self.other_option()
         self._parser.parse_args(namespace=self)
-        self.gpu_ids = [int(x) for x in self.gpu_ids.split(',') if int(x) >= 0]
-        self.dev = T.device(f'cuda:{self.gpu_ids[0]}' if T.cuda.is_available() and len(self.gpu_ids) > 0 else 'cpu')
+        self.post_process()
 
     @abstractmethod
     def other_option(self):
-        pass
+        raise NotImplementedError()
+
+    def post_process(self):
+        self.gpu_ids = [int(x) for x in self.gpu_ids.split(',') if int(x) >= 0]
+        self.dev = T.device(f'cuda:{self.gpu_ids[0]}' if T.cuda.is_available() and len(self.gpu_ids) > 0 else 'cpu')

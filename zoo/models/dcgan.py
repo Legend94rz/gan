@@ -1,6 +1,5 @@
 from .base_model import BaseModel
 from ..common import DCGenerator, DCDiscriminator, DisLoss, GenLoss, BaseOption
-from torch import nn
 import torch as T
 
 
@@ -47,4 +46,3 @@ class DCGan(BaseModel):
         loss_g.backward()
         self.optimizer_G.step()
         return loss_d, loss_g
-

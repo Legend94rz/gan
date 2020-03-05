@@ -12,22 +12,23 @@ class CycleGANOption(BaseOption):
         self._parser.add_argument('--lamda', type=float, default=0.5, help='weights of cycle loss.')
         self._parser.add_argument('--domx_nc', type=int, default=3, help='X domain channel. 3 for RGB, 1 for grayscale')
         self._parser.add_argument('--domy_nc', type=int, default=3, help='Y domain channel. 3 for RGB, 1 for grayscale')
+        self._parser.add_argument('--n_blocks', type=int, default=9, help='resnet blocks used for generators.')
 
 
 class CycleGAN(BaseModel):
     def __init__(self, opt: BaseOption):
         super().__init__(opt)
-        self.G2X = nn.DataParallel(ResnetGenerator(opt.domy_nc, opt.domx_nc, n_blocks=6).to(opt.dev), opt.gpu_ids)
-        self.G2Y = nn.DataParallel(ResnetGenerator(opt.domx_nc, opt.domy_nc, n_blocks=6).to(opt.dev), opt.gpu_ids)
-        self.D4X = nn.DataParallel(NLayerDiscriminator(opt.domx_nc).to(opt.dev), opt.gpu_ids)
-        self.D4Y = nn.DataParallel(NLayerDiscriminator(opt.domy_nc).to(opt.dev), opt.gpu_ids)
+        self.G2X = nn.DataParallel(ResnetGenerator(opt.domy_nc, opt.domx_nc, n_blocks=opt.n_blocks), opt.gpu_ids)
+        self.G2Y = nn.DataParallel(ResnetGenerator(opt.domx_nc, opt.domy_nc, n_blocks=opt.n_blocks), opt.gpu_ids)
+        self.D4X = nn.DataParallel(NLayerDiscriminator(opt.domx_nc), opt.gpu_ids)
+        self.D4Y = nn.DataParallel(NLayerDiscriminator(opt.domy_nc), opt.gpu_ids)
 
         self.optimizer_G = T.optim.Adam(it.chain(self.G2Y.parameters(), self.G2X.parameters()))
         self.optimizer_D = T.optim.Adam(it.chain(self.D4X.parameters(), self.D4Y.parameters()))
-        self.d4y_lossfn = DisLoss(self.D4Y).to(opt.dev)
-        self.d4x_lossfn = DisLoss(self.D4X).to(opt.dev)
-        self.g2x_lossfn = GenLoss().to(opt.dev)
-        self.g2y_lossfn = GenLoss().to(opt.dev)
+        self.d4y_lossfn = DisLoss(self.D4Y)  # no params, thus doesn't have to `to(dev)`
+        self.d4x_lossfn = DisLoss(self.D4X)
+        self.g2x_lossfn = GenLoss()
+        self.g2y_lossfn = GenLoss()
         self.cyc_lossfn = nn.L1Loss()
 
     def __call__(self, dom_x, dom_y):

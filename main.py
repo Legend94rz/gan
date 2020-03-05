@@ -1,6 +1,5 @@
 from zoo.common import BaseOption, dataset_helper as hp
 from zoo.models import CycleGANOption, CycleGAN
-import torch as T
 from torch.utils.data import DataLoader
 import torchvision.utils as vutil
 from matplotlib import animation as anim
@@ -23,10 +22,10 @@ def init_logger():
 
 
 if __name__ == "__main__":
-    logger = init_logger()
     opt = CycleGANOption()
     os.makedirs(opt.save_path, exist_ok=True)
     save_path = Path(opt.save_path)
+    logger = init_logger()
 
     transform = trans.Compose([trans.Resize(286), trans.CenterCrop(256), trans.ToTensor(),
                                trans.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
@@ -45,15 +44,18 @@ if __name__ == "__main__":
             loss_d, loss_g = m.update(data)
             logger.info(f'Epoch[{e}/{opt.epochs}]  batch[{i}]  LossG[{loss_g}]  LossD[{loss_d}]')
             if i % 100 == 0:
-                fake_x, fake_y = m(sam_train[0][:64], sam_train[1][:64])
-                x2y_in_train = vutil.make_grid(fake_y.detach().cpu(), normalize=True)
-                y2x_in_train = vutil.make_grid(fake_x.detach().cpu(), normalize=True)
-                fake_x, fake_y = m(sam_test[0][:64], sam_test[1][:64])
-                x2y_in_test = vutil.make_grid(fake_y.detach().cpu(), normalize=True)
-                y2x_in_test = vutil.make_grid(fake_x.detach().cpu(), normalize=True)
+                fake_x, fake_y = m(sam_train[0][:4], sam_train[1][:4])
+                x2y_in_train = vutil.make_grid(fake_y.detach().cpu(), normalize=True, nrow=2)
+                y2x_in_train = vutil.make_grid(fake_x.detach().cpu(), normalize=True, nrow=2)
+
+                fake_x, fake_y = m(sam_test[0][:4], sam_test[1][:4])
+                x2y_in_test = vutil.make_grid(fake_y.detach().cpu(), normalize=True, nrow=2)
+                y2x_in_test = vutil.make_grid(fake_x.detach().cpu(), normalize=True, nrow=2)
                 img = vutil.make_grid([x2y_in_train, y2x_in_train, x2y_in_test, y2x_in_test], nrow=2, padding=8) \
                     .numpy().transpose([1, 2, 0])
-                plt.imsave(save_path/f"fig{len(img_list)}.jpg")
+                filename = f"fig{len(img_list)}.jpg"
+                plt.imsave(save_path/filename, img)
+                logger.info(f'saved figure to: {save_path/filename}')
                 plt.axis('off')
                 img_list.append([plt.imshow(img)])
                 plt.show()
