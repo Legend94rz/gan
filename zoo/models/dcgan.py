@@ -3,17 +3,20 @@ from ..common import DCGenerator, DCDiscriminator, DisLoss, GenLoss, BaseOption
 import torch as T
 
 
-class DCGan(BaseModel):
-    nz = 100
+class DCGanOption(BaseOption):
+    def other_option(self):
+        self._parser.add_argument('--nz', type=int, default=3, help='number of features drawn from dist. randomly.')
 
+
+class DCGan(BaseModel):
     def __init__(self, opt: BaseOption):
         super().__init__(opt)
         self.G = DCGenerator().to(opt.dev)
         self.D = DCDiscriminator().to(opt.dev)
         self.optimizer_G = T.optim.Adam(self.G.parameters())
         self.optimizer_D = T.optim.Adam(self.D.parameters())
-        self.lossD_fn = DisLoss(self.D).to(opt.dev)
-        self.lossG_fn = GenLoss().to(opt.dev)
+        self.lossD_fn = DisLoss(self.D)
+        self.lossG_fn = GenLoss()
 
     def __call__(self, x):
         self.fake_data = self.G(x)
@@ -28,7 +31,7 @@ class DCGan(BaseModel):
         # 5. optimizer.step()
 
         # prepare input
-        noise = T.randn(len(data), DCGan.nz, 1, 1, device=self.opt.dev)
+        noise = T.randn(len(data), self.opt.nz, 1, 1, device=self.opt.dev)
         real_data = data.to(self.opt.dev)
 
         # update D:
@@ -40,9 +43,8 @@ class DCGan(BaseModel):
         self.optimizer_D.step()
 
         # update G:
-        pred = self.D(self.fake_data)
         self.optimizer_G.zero_grad()
-        loss_g = self.lossG_fn(pred)
+        loss_g = self.lossG_fn(self.D(self.fake_data))
         loss_g.backward()
         self.optimizer_G.step()
         return loss_d, loss_g

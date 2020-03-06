@@ -18,10 +18,10 @@ class CycleGANOption(BaseOption):
 class CycleGAN(BaseModel):
     def __init__(self, opt: BaseOption):
         super().__init__(opt)
-        self.G2X = nn.DataParallel(ResnetGenerator(opt.domy_nc, opt.domx_nc, n_blocks=opt.n_blocks), opt.gpu_ids)
-        self.G2Y = nn.DataParallel(ResnetGenerator(opt.domx_nc, opt.domy_nc, n_blocks=opt.n_blocks), opt.gpu_ids)
-        self.D4X = nn.DataParallel(NLayerDiscriminator(opt.domx_nc), opt.gpu_ids)
-        self.D4Y = nn.DataParallel(NLayerDiscriminator(opt.domy_nc), opt.gpu_ids)
+        self.G2X = nn.DataParallel(ResnetGenerator(opt.domy_nc, opt.domx_nc, n_blocks=opt.n_blocks).to(opt.dev), opt.gpu_ids)
+        self.G2Y = nn.DataParallel(ResnetGenerator(opt.domx_nc, opt.domy_nc, n_blocks=opt.n_blocks).to(opt.dev), opt.gpu_ids)
+        self.D4X = nn.DataParallel(NLayerDiscriminator(opt.domx_nc).to(opt.dev), opt.gpu_ids)
+        self.D4Y = nn.DataParallel(NLayerDiscriminator(opt.domy_nc).to(opt.dev), opt.gpu_ids)
 
         self.optimizer_G = T.optim.Adam(it.chain(self.G2Y.parameters(), self.G2X.parameters()))
         self.optimizer_D = T.optim.Adam(it.chain(self.D4X.parameters(), self.D4Y.parameters()))
@@ -44,6 +44,8 @@ class CycleGAN(BaseModel):
         self(dom_x, dom_y)
 
         self.optimizer_D.zero_grad()
+        self.set_requires_grad([self.G2X, self.G2Y], False)
+        self.set_requires_grad([self.D4X, self.D4Y], True)
         loss_dy = self.d4y_lossfn(self.fake_y, dom_y)
         loss_dx = self.d4x_lossfn(self.fake_x, dom_x)
         loss_d = loss_dx + loss_dy
@@ -51,13 +53,13 @@ class CycleGAN(BaseModel):
         self.optimizer_D.step()
 
         self.optimizer_G.zero_grad()
+        self.set_requires_grad([self.G2X, self.G2Y], True)
+        self.set_requires_grad([self.D4X, self.D4Y], False)
         loss_gx = self.g2x_lossfn(self.D4X(self.fake_x))
         loss_gy = self.g2y_lossfn(self.D4Y(self.fake_y))
         cyc_x = self.cyc_lossfn(dom_x, self.rec_x)
         cyc_y = self.cyc_lossfn(dom_y, self.rec_y)
         loss_g = loss_gx + loss_gy + self.opt.lamda*(cyc_x+cyc_y)
-        # RuntimeError: Trying to backward through the graph a second time, but the buffers have already been freed.
-        #  Specify retain_graph=True when calling backward the first time.
         loss_g.backward()
         self.optimizer_G.step()
 

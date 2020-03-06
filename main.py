@@ -59,6 +59,7 @@ if __name__ == "__main__":
                 plt.axis('off')
                 img_list.append([plt.imshow(img)])
                 plt.show()
+        m.save(save_path/f"cyclegan.pt")
     plt.ion()
     fig = plt.figure(figsize=(16, 16))
     gif = anim.ArtistAnimation(fig, img_list, interval=50, repeat_delay=1000, blit=True)

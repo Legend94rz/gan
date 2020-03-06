@@ -3,7 +3,6 @@ import torch as T
 from abc import abstractmethod, ABC
 
 
-# todo: result save path
 class BaseOption(ABC):
     def __init__(self):
         self._parser = argparse.ArgumentParser(description="Some Utils For Merging/Outputing Results.")
