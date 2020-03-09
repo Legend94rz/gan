@@ -19,7 +19,8 @@ class BaseModel:
             if isinstance(v, T.optim.Optimizer) or isinstance(v, T.nn.Module):
                 v.load_state_dict(ckpt[k])
 
-    def set_requires_grad(self, nets, require_grad=True):
+    @staticmethod
+    def set_requires_grad(nets, require_grad=True):
         if not isinstance(nets, list):
             nets = [nets]
         for net in nets:

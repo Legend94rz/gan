@@ -9,7 +9,7 @@ from ..common.options import BaseOption
 
 class CycleGANOption(BaseOption):
     def other_option(self):
-        self._parser.add_argument('--lamda', type=float, default=0.5, help='weights of cycle loss.')
+        self._parser.add_argument('--lamda', type=float, default=10.0, help='weights of cycle loss.')
         self._parser.add_argument('--domx_nc', type=int, default=3, help='X domain channel. 3 for RGB, 1 for grayscale')
         self._parser.add_argument('--domy_nc', type=int, default=3, help='Y domain channel. 3 for RGB, 1 for grayscale')
         self._parser.add_argument('--n_blocks', type=int, default=9, help='resnet blocks used for generators.')
