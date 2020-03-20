@@ -31,10 +31,12 @@ if __name__ == "__main__":
 
     transform = trans.Compose([trans.Resize(286), trans.CenterCrop(256), trans.ToTensor(),
                                trans.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    loader = DataLoader(hp.Summer2Winter('./dataset/summer2winter_yosemite.zip', split='train', transform=transform),
+    loader = DataLoader(hp.Unaligned('./dataset/horse2zebra.zip', 'horse2zebra',
+                                     split='train', transform=transform),
                         num_workers=opt.ncpu, batch_size=opt.batch_size)
     sam_train = sam_test = next(
-        iter(DataLoader(hp.Summer2Winter('./dataset/summer2winter_yosemite.zip', split='test', transform=transform),
+        iter(DataLoader(hp.Unaligned('./dataset/horse2zebra.zip', 'horse2zebra',
+                                         split='test', transform=transform),
                         num_workers=opt.ncpu, batch_size=opt.batch_size)))
     #img_list = []
     #plt.ioff()
@@ -55,7 +57,7 @@ if __name__ == "__main__":
         x2y_in_test = vutil.make_grid(fake_y.detach().cpu(), normalize=True, nrow=2)
         y2x_in_test = vutil.make_grid(fake_x.detach().cpu(), normalize=True, nrow=2)
         img = vutil.make_grid([x2y_in_train, y2x_in_train, x2y_in_test, y2x_in_test], nrow=2, padding=8) \
-            .numpy().transpose([1, 2, 0])
+            .numpy()
         writer.add_image("generated", img, e)
         m.save(save_path/f"cyclegan.pt")
     #plt.ion()

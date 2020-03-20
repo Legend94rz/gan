@@ -28,13 +28,15 @@ class CelebAFaces(IterableDataset):
                 yield self.transform(jpg)
 
 
-class Summer2Winter(IterableDataset):
+class Unaligned(IterableDataset):
     """
     ref page: https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/
     summer2winter_yosemite.zip
+    horse2zebra.zip
     """
-    def __init__(self, filepath, split='train', transform=None):
+    def __init__(self, filepath, subdir, split='train', transform=None):
         self.filepath = filepath
+        self.subdir = subdir
         self.split = split
         self.transform = transform
         if self.transform is None:
@@ -46,8 +48,8 @@ class Summer2Winter(IterableDataset):
         wid = 0 if worker_info is None else worker_info.id
         with zip.ZipFile(self.filepath) as zf:
             lst = zf.namelist()
-            lstA = [x for x in lst if re.fullmatch(f'summer2winter_yosemite/{self.split}A/.+', x) is not None]
-            lstB = [x for x in lst if re.fullmatch(f'summer2winter_yosemite/{self.split}B/.+', x) is not None]
+            lstA = [x for x in lst if re.fullmatch(f'{self.subdir}/{self.split}A/.+', x) is not None]
+            lstB = [x for x in lst if re.fullmatch(f'{self.subdir}/{self.split}B/.+', x) is not None]
             for i in range(wid, max(len(lstA), len(lstB)), num_proc):
                 with zf.open(lstA[i % len(lstA)]) as fa, zf.open(lstB[i % len(lstB)]) as fb:
                     jpga = Image.open(fa).convert('RGB')
