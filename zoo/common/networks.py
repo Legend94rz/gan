@@ -194,7 +194,8 @@ class DCDiscriminator(nn.Module):
 class DisLoss(nn.Module):
     def __init__(self, dis):
         super(DisLoss, self).__init__()
-        self.loss = nn.BCEWithLogitsLoss()
+        # self.loss = nn.BCEWithLogitsLoss()
+        self.loss = nn.MSELoss()
         self.dis = dis
 
     def forward(self, fake_data, real_data):
@@ -211,7 +212,8 @@ class DisLoss(nn.Module):
 class GenLoss(nn.Module):
     def __init__(self):
         super(GenLoss, self).__init__()
-        self.loss = nn.BCEWithLogitsLoss()
+        # self.loss = nn.BCEWithLogitsLoss()
+        self.loss = nn.MSELoss()
 
     def forward(self, pred, target=1.0):
         target = T.tensor(target, device=pred.device).expand_as(pred)

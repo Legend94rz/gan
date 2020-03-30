@@ -37,8 +37,8 @@ class CycleGAN(BaseModel):
 
     def __call__(self, dom_x, dom_y):
         dom_x, dom_y = dom_x.to(self.opt.dev), dom_y.to(self.opt.dev)
-        self.fake_x = self.G2X(dom_x)
-        self.fake_y = self.G2Y(dom_y)
+        self.fake_x = self.G2X(dom_y)
+        self.fake_y = self.G2Y(dom_x)
         self.rec_x = self.G2X(self.fake_y)
         self.rec_y = self.G2Y(self.fake_x)
         return self.fake_x, self.fake_y
