@@ -15,6 +15,7 @@ class CycleGANOption(BaseOption):
         self._parser.add_argument('--n_blocks', type=int, default=9, help='resnet blocks used for generators.')
         self._parser.add_argument('--lr', type=int, default=0.0002, help='learning rate.')
         self._parser.add_argument('--lamda_idt', type=float, default=5, help='identity loss')
+        self._parser.add_argument('--pretrained', type=str, default='model.pt', help='pretrained model weights. under `save_path`')
 
 
 # todo: replay buffer

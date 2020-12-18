@@ -4,6 +4,7 @@ import torch as T
 from PIL import Image
 from torchvision import transforms as trans
 import re
+from pathlib import Path
 
 
 class CelebAFaces(IterableDataset):
@@ -28,7 +29,7 @@ class CelebAFaces(IterableDataset):
                 yield self.transform(jpg)
 
 
-class Unaligned(IterableDataset):
+class UnalignedZipped(IterableDataset):
     """
     ref page: https://people.eecs.berkeley.edu/~taesung_park/CycleGAN/datasets/
     summer2winter_yosemite.zip
@@ -55,3 +56,21 @@ class Unaligned(IterableDataset):
                     jpga = Image.open(fa).convert('RGB')
                     jpgb = Image.open(fb).convert('RGB')
                 yield self.transform(jpga), self.transform(jpgb)
+
+
+class UnalignedFolder(Dataset):
+    def __init__(self, folder, transform=None):
+        self.folder = Path(folder)
+        self.imgas = list((self.folder / 'A').iterdir())
+        self.imgbs = list((self.folder / 'B').iterdir())
+        self.transform = transform
+        if self.transform is None:
+            self.transform = trans.ToTensor()
+
+    def __getitem__(self, i):
+        ia = Image.open(self.imgas[i % len(self.imgas)]).convert('RGB')
+        ib = Image.open(self.imgbs[i % len(self.imgbs)]).convert('RGB')
+        return self.transform(ia), self.transform(ib)
+
+    def __len__(self):
+        return max(len(self.imgbs), len(self.imgbs))
